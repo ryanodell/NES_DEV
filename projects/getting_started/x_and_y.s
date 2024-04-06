@@ -12,6 +12,7 @@
 
   ; Decrement the value of X once
   dex
+  dex
 
   ; Decrement the value Y twice
   dey
