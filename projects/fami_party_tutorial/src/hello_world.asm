@@ -61,4 +61,4 @@ sprites:
 .addr nmi_handler, reset_handler, irq_handler
 
 .segment "CHR"
-.incbin "graphics.chr"
+.incbin "starfield.chr"
