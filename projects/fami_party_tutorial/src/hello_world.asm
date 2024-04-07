@@ -24,14 +24,24 @@
   STX PPUADDR
   LDX #$00
   STX PPUADDR
-  LDA #$29
+
+;Replace this with a loop:
+  ; LDA #$29
+  ; STA PPUDATA
+  ; LDA #$19
+  ; STA PPUDATA
+  ; LDA #$09
+  ; STA PPUDATA
+  ; LDA #$0f
+  ; STA PPUDATA
+;The loop:
+load_palletes:
+  LDA palettes, X
   STA PPUDATA
-  LDA #$19
-  STA PPUDATA
-  LDA #$09
-  STA PPUDATA
-  LDA #$0f
-  STA PPUDATA
+  INX
+  CPX #$04
+  BNE load_palletes
+
   ; write sprite data
   LDA #$70
   STA $0200 ; Y-coord of first sprite
@@ -52,6 +62,10 @@ vblankwait:       ; wait for another vblank before continuing
 forever:
   JMP forever
 .endproc
+
+.segment "RODATA"
+palettes:
+.byte $29, $19, $09, $0f
 
 .segment "VECTORS"
 .addr nmi_handler, reset_handler, irq_handler
