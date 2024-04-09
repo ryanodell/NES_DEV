@@ -11,14 +11,31 @@
   STA OAMADDR
   LDA #$02
   STA OAMDMA
+  LDA #$00
 
-  ; update tiles AFTER DMA transfer
+  ; update tiles *after* DMA transfer
   JSR update_player
   JSR draw_player
 
-  LDA #$00
-  STA $2005
-  STA $2005
+  LDA scroll
+  CMP #$00 ; did we scroll to the end of a nametable?
+  BNE set_scroll_positions
+  ; if yes,
+  ; update base nametable
+  LDA ppuctrl_settings
+  EOR #%00000010 ; flip bit #1 to its opposite
+  STA ppuctrl_settings
+  STA PPUCTRL
+  LDA #240
+  STA scroll
+
+set_scroll_positions:
+  LDA #$00 ; X scroll first
+  STA PPUSCROLL
+  DEC scroll
+  LDA scroll ; then Y scroll
+  STA PPUSCROLL
+
   RTI
 .endproc
 
@@ -139,8 +156,17 @@ exit_subroutine:
   RTS
 .endproc
 
+.import draw_starfield
+
 .export main
 .proc main
+  LDA #239   ; Y is only 240 lines tall!
+  STA scroll
+  ;Maybe
+  LDA #%10010000  ; turn on NMIs, sprites use first pattern table
+  STA ppuctrl_settings
+  STA PPUCTRL
+
   ; write a palette
   LDX PPUSTATUS
   LDX #$3f
@@ -153,144 +179,12 @@ load_palletes:
   INX
   CPX #$20
   BNE load_palletes
+; write nametables
+  LDX #$20
+  JSR draw_starfield
 
-  ; write sprite data
-;   LDX #$00
-; load_sprites:
-;   LDA sprites, X
-;   STA $0200, X
-;   INX
-;   CPX #$10
-;   BNE load_sprites
-
-	; write nametables
-	; big stars first
-	LDA PPUSTATUS
-	LDA #$20
-	STA PPUADDR
-	LDA #$6b
-	STA PPUADDR
-	LDX #$2f
-	STX PPUDATA
-
-	LDA PPUSTATUS
-	LDA #$21
-	STA PPUADDR
-	LDA #$57
-	STA PPUADDR
-	STX PPUDATA
-
-	LDA PPUSTATUS
-	LDA #$22
-	STA PPUADDR
-	LDA #$23
-	STA PPUADDR
-	STX PPUDATA
-
-	LDA PPUSTATUS
-	LDA #$23
-	STA PPUADDR
-	LDA #$52
-	STA PPUADDR
-	STX PPUDATA
-
-	; next, small star 1
-	LDA PPUSTATUS
-	LDA #$20
-	STA PPUADDR
-	LDA #$74
-	STA PPUADDR
-	LDX #$2d
-	STX PPUDATA
-
-	LDA PPUSTATUS
-	LDA #$21
-	STA PPUADDR
-	LDA #$43
-	STA PPUADDR
-	STX PPUDATA
-
-	LDA PPUSTATUS
-	LDA #$21
-	STA PPUADDR
-	LDA #$5d
-	STA PPUADDR
-	STX PPUDATA
-
-	LDA PPUSTATUS
-	LDA #$21
-	STA PPUADDR
-	LDA #$73
-	STA PPUADDR
-	STX PPUDATA
-
-	LDA PPUSTATUS
-	LDA #$22
-	STA PPUADDR
-	LDA #$2f
-	STA PPUADDR
-	STX PPUDATA
-
-	LDA PPUSTATUS
-	LDA #$22
-	STA PPUADDR
-	LDA #$f7
-	STA PPUADDR
-	STX PPUDATA
-
-	; finally, small star 2
-	LDA PPUSTATUS
-	LDA #$20
-	STA PPUADDR
-	LDA #$f1
-	STA PPUADDR
-	LDX #$2e
-	STX PPUDATA
-
-	LDA PPUSTATUS
-	LDA #$21
-	STA PPUADDR
-	LDA #$a8
-	STA PPUADDR
-	STX PPUDATA
-
-	LDA PPUSTATUS
-	LDA #$22
-	STA PPUADDR
-	LDA #$7a
-	STA PPUADDR
-	STX PPUDATA
-
-	LDA PPUSTATUS
-	LDA #$23
-	STA PPUADDR
-	LDA #$44
-	STA PPUADDR
-	STX PPUDATA
-
-	LDA PPUSTATUS
-	LDA #$23
-	STA PPUADDR
-	LDA #$7c
-	STA PPUADDR
-	STX PPUDATA
-
-	; finally, attribute table
-	LDA PPUSTATUS
-	LDA #$23
-	STA PPUADDR
-	LDA #$c2
-	STA PPUADDR
-	LDA #%01000000
-	STA PPUDATA
-
-	LDA PPUSTATUS
-	LDA #$23
-	STA PPUADDR
-	LDA #$e0
-	STA PPUADDR
-	LDA #%00001100
-	STA PPUDATA
+  LDX #$28
+  JSR draw_starfield
 
 vblankwait:       ; wait for another vblank before continuing
   BIT PPUSTATUS
@@ -308,6 +202,8 @@ forever:
 player_x: .res 1
 player_y: .res 1
 player_dir: .res 1
+scroll: .res 1
+ppuctrl_settings: .res 1
 .exportzp player_x, player_y
 
 .segment "RODATA"
