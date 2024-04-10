@@ -6,12 +6,15 @@
   RTI
 .endproc
 
+.import read_controller1
+
 .proc nmi_handler
   LDA #$00
   STA OAMADDR
   LDA #$02
   STA OAMDMA
   LDA #$00
+  JSR read_controller1
 
   ; update tiles *after* DMA transfer
   JSR update_player
