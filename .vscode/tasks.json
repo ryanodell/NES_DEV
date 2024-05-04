@@ -22,6 +22,18 @@
                 "clean",
                 "--directory=${workspaceFolder}/${config:PROJECT_PATH}"
             ]
+        },
+        {
+            "label": "run-fceux",
+            "type": "shell",
+            "command": "fceux",
+            "args": [
+                "${workspaceFolder}/projects/fami_party_tutorial/bin/output.nes"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true                
+            }
         }
     ]
 }

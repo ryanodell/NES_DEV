@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch with FCEUX",
+            "type": "node",
+            "request": "launch",
+            "preLaunchTask": "run-fceux",
+            "program": "",
+            "args": []
+        }
+    ]
+}
