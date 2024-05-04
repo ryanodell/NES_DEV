@@ -6,8 +6,8 @@
 	],
 	"settings": {
 		"files.exclude": { 
-			"**/*.o": true
+			"**/*.o": true,
+			"**/bin" : true
 		}
-
 	}
 }
