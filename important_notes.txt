@@ -1,0 +1,10 @@
+
+
+***************************************C65 EXAMPLES**********************************************
+CA65 Command:
+ca65 .\src\backgrounds.asm
+
+LD Command:
+ld65 src/reset.o src/hello_world.o src/backgrounds.o src/controllers.o -C nes.cfg -o hello_world.nes
+**************************************************************************************************
+
