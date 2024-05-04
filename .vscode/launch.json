@@ -7,7 +7,8 @@
             "request": "launch",
             "preLaunchTask": "run-fceux",
             "program": "",
-            "args": []
+            "args": [],
+            "console": "internalConsole"
         }
     ]
 }
