@@ -2,10 +2,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch with FCEUX",
+            "name": "Launch with Mesen",
             "type": "node",
             "request": "launch",
-            "preLaunchTask": "run-fceux",
+            "preLaunchTask": "run-mesen",
             "program": "",
             "args": [],
             "console": "internalConsole"

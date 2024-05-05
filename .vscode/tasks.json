@@ -24,16 +24,23 @@
             ]
         },
         {
-            "label": "run-fceux",
+            "label": "run-mesen",
             "type": "shell",
-            "command": "fceux",
+            "command": "mesen",
+            "dependsOn":["build"],
             "args": [
-                "${workspaceFolder}/projects/fami_party_tutorial/bin/output.nes"
+                "${workspaceFolder}/${config:PROJECT_PATH}/bin/output.nes"
             ],
             "group": {
-                "kind": "build",
-                "isDefault": true                
+                "kind": "build"        
             }
         }
-    ]
+    ],
+    "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "showReuseMessage": true
+    }
 }

@@ -14,12 +14,12 @@ $(shell mkdir -p $(OBJ_DIR) $(OUTPUT_DIR))
 # Rule to generate .o files from .asm files
 $(OBJ_DIR)/%.o: src/%.asm
 	@echo "Assembling $<..."
-	@ca65 $< -o $@
+	@ca65 -g $< -o $@
 
 # Rule to link .o files into a .nes file
 $(OUTPUT_NES): $(OBJ_FILES)
 	@echo "Linking $@..."
-	@ld65 -o $@ -C nes.cfg $(OBJ_FILES)
+	@ld65 --dbgfile $(OUTPUT_DIR)/output.dbg -o $@ -C nes.cfg $(OBJ_FILES)
 
 # Rule to build all
 all: $(OUTPUT_NES)
@@ -27,6 +27,6 @@ all: $(OUTPUT_NES)
 # Clean rule
 clean:
 	@echo "Cleaning up..."
-	@rm -f $(OBJ_FILES) $(OUTPUT_NES)
+	@rm -f $(OBJ_FILES) $(OUTPUT_NES) $(OUTPUT_DIR)/output.dbg
 
 .PHONY: all clean
