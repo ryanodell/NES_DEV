@@ -14,7 +14,7 @@ $(shell mkdir -p $(OBJ_DIR) $(OUTPUT_DIR))
 # Rule to generate .o files from .asm files
 $(OBJ_DIR)/%.o: src/%.asm
 	@echo "Assembling $<..."
-	@ca65 -g $< -o $@
+	@ca65 -t nes -g $< -o $@
 
 # Rule to link .o files into a .nes file
 $(OUTPUT_NES): $(OBJ_FILES)
