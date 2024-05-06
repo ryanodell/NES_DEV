@@ -2,7 +2,6 @@
 
 .segment "CODE"
 .import main
-
 .export reset_handler
 .proc reset_handler
   SEI
