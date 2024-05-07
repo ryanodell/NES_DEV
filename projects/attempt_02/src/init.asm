@@ -1,5 +1,7 @@
 .include "include/constants.inc"
+
 .segment "CODE"
+
 
 .import main
 .export reset_handler
@@ -17,17 +19,15 @@
   STA CONTROLLER2   ;Disable APU frame IRQ CONTROLLER2 is also $4017
   LDA #$05
   STA SNDCHN        ;Disable DMC Playback, init other channels
-vblank1:
-  BIT PPUSTATUS     ;Takes 1 full frame for PPU to become stable
-  BPL vblank1
-
+  VblankWait        ;Takes 1 full frame for PPU to become stable
   CLD               ;Clear decimal mode because NES was trying to be cheap :D
-
 ;TODO: Clear OAM
 ;TODO: Clear ZP
-vblank2:
-  BIT PPUSTATUS     ;After second vblank, PPU is stable, ready to rock and roll
-  BPL vblank2
+  VblankWait          ;After second vblank, PPU is stable, ready to rock and roll
 
   JMP main
 .endproc
+
+
+;Keep for reference:
+;ca65 --listing out.lst init.asm
