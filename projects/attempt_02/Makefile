@@ -1,4 +1,4 @@
-ASM_FILES := src/main.asm src/init.asm
+ASM_FILES := src/init.asm src/main.asm
 
 OBJ_DIR := bin/obj
 OUTPUT_DIR := bin
