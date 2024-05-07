@@ -60,4 +60,4 @@ forever:
 .addr nmi_handler, reset_handler, irq_handler
 
 .segment "CHR"
-.incbin "assets/graphics.chr"
+.incbin "assets/mario.chr"
