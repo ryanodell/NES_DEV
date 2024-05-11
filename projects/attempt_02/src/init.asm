@@ -3,7 +3,7 @@
 .segment "CODE"
 
 
-.import main
+.import main, ppu_clear_oam
 .export reset_handler
 .proc reset_handler
   SEI               ;Disable Interupts
@@ -22,15 +22,8 @@
   VblankWait        ;Takes 1 full frame for PPU to become stable
   CLD               ;Clear decimal mode because NES was trying to be cheap :D
 
-  LDX #$00
-  LDA #$FF
-clear_oam:          ;Set the sprite's Y location off screen
-  STA $0200,X
-  INX
-  INX
-  INX
-  INX
-  BNE clear_oam
+  JSR ppu_clear_oam
+  
 ;TODO: Clear ZP
   VblankWait          ;After second vblank, PPU is stable, ready to rock and roll
 
