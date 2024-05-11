@@ -23,8 +23,12 @@
   CLD               ;Clear decimal mode because NES was trying to be cheap :D
 
   JSR ppu_clear_oam
-  
-;TODO: Clear ZP
+  TXA               ;X register SHOULD be 0 from pplu_clear_oam..
+clear_zp:
+  STA $00, x        ;Question: address $00 - $0A is read-only, part of the header... why no crash?
+  INX               ;Maybe LDX should be set to $0A ? Have to try on real NES to see if this is a non-issue or not
+  BNE clear_zp
+
   VblankWait          ;After second vblank, PPU is stable, ready to rock and roll
 
   JMP main

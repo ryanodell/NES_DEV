@@ -14,14 +14,11 @@
 .segment "CODE"
 .export main
 .proc main
-  ;LDX PPUSTATUS      ;Pretty sure this was never needed. Keep just in case
   LDX #$3f            ;Pallete data starts at $3f00
   STX PPUADDR         ;Set the high bit 3f
   LDX #$00            
   STX PPUADDR         ;Set the low bit 00
 
-  ; LDA #$29            ;Now that we have set the address, we can set the PPU data
-  ; STA PPUDATA         ;$29 for the bright green. Updating to loop soon though
 load_palletes:
   LDA palletes, x     ;x register is 0 and reads from pallete
   STA PPUDATA         ;store the actual value located at index
