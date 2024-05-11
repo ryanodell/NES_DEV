@@ -20,8 +20,14 @@
   LDX #$00            
   STX PPUADDR         ;Set the low bit 00
 
-  LDA #$29            ;Now that we have set the address, we can set the PPU data
-  STA PPUDATA         ;$29 for the bright green. Updating to loop soon though
+  ; LDA #$29            ;Now that we have set the address, we can set the PPU data
+  ; STA PPUDATA         ;$29 for the bright green. Updating to loop soon though
+load_palletes:
+  LDA palletes, x     ;x register is 0 and reads from pallete
+  STA PPUDATA         ;store the actual value located at index
+  INX
+  CPX #$04            ;CPX does subtraction to check if x is 4
+  BNE load_palletes   ;Zero flag set when x is 4
 
   LDA #%00011110
   STA PPUMASK
@@ -40,3 +46,7 @@ forever:
 ; Just reserve it for now
 .segment "CHR"
 .res 8192
+
+.segment "RODATA"
+palletes:
+  .byte $29, $19, $09, $0f
