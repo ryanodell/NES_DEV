@@ -29,7 +29,7 @@ clear_zp:
   INX               ;Maybe LDX should be set to $0A ? Have to try on real NES to see if this is a non-issue or not
   BNE clear_zp
 
-  VblankWait          ;After second vblank, PPU is stable, ready to rock and roll
+  VblankWait        ;After second vblank, PPU is stable, ready to rock and roll
 
   JMP main
 .endproc
