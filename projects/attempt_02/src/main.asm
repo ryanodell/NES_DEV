@@ -26,6 +26,27 @@ load_palletes:
   CPX #$04            ;CPX does subtraction to check if x is 4
   BNE load_palletes   ;Zero flag set when x is 4
 
+  ;Writing star (2f) to background 
+  LDA PPUSTATUS
+	LDA #$20            ;Low byte
+	STA PPUADDR
+	LDA #$89            ;High byte
+	STA PPUADDR
+	LDX #$2f            ;The Star
+	STX PPUDATA
+
+  ;Attribute table
+  LDA PPUSTATUS
+	LDA #$23
+	STA PPUADDR
+	LDA #$c2
+	STA PPUADDR
+	LDA #%01000000
+	STA PPUDATA
+
+  LDA #%10010000  ; turn on NMIs, sprites use first pattern table
+  STA PPUCTRL
+
   LDA #%00011110
   STA PPUMASK
 forever:
@@ -40,9 +61,10 @@ forever:
   RTI
 .endproc
 
-; Just reserve it for now
+
 .segment "CHR"
-.res 8192
+.incbin "assets/space.chr"
+; .res 8192
 
 .segment "RODATA"
 palletes:
