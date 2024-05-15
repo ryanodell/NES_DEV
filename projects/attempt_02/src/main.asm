@@ -23,26 +23,26 @@ load_palletes:
   LDA palletes, x     ;x register is 0 and reads from pallete
   STA PPUDATA         ;store the actual value located at index
   INX
-  CPX #$04            ;CPX does subtraction to check if x is 4
+  CPX #$10            ;CPX does subtraction to check if x is 10 (16 in decimal)
   BNE load_palletes   ;Zero flag set when x is 4
 
-  ;Writing star (2f) to background 
+  ;Writing thing (35) to background 
+	LDX #$35            ;The Star
   LDA PPUSTATUS
 	LDA #$20            ;Low byte
 	STA PPUADDR
 	LDA #$89            ;High byte
 	STA PPUADDR
-	LDX #$2f            ;The Star
 	STX PPUDATA
 
   ;Attribute table
   LDA PPUSTATUS
-	LDA #$23
+	LDA #$23            ;High byte NEXXT atOff(xx)
 	STA PPUADDR
-	LDA #$c2
+	LDA #$c8            ;Low byte  (NEXXT atOff(xx))
 	STA PPUADDR
-	LDA #%01000000
-	STA PPUDATA
+	LDA #%00000100      ;.2 so it would be in the top right 4x4
+	STA PPUDATA         ;Set the data in the ppu
 
   LDA #%10010000  ; turn on NMIs, sprites use first pattern table
   STA PPUCTRL
@@ -68,4 +68,13 @@ forever:
 
 .segment "RODATA"
 palletes:
-  .byte $29, $19, $09, $0f
+.byte $0f, $12, $23, $27
+.byte $0f, $2b, $3c, $39
+.byte $0f, $0c, $07, $13
+.byte $0f, $19, $09, $29
+
+.byte $0f, $2d, $10, $15
+.byte $0f, $19, $09, $29
+.byte $0f, $19, $09, $29
+.byte $0f, $19, $09, $29
+  ; .byte $29, $19, $09, $0f
