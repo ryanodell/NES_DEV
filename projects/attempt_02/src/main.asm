@@ -31,7 +31,7 @@ load_palletes:
   LDA PPUSTATUS
 	LDA #$20            ;Low byte
 	STA PPUADDR
-	LDA #$89            ;High byte
+	LDA #$83            ;High byte
 	STA PPUADDR
 	STX PPUDATA
 
@@ -41,19 +41,26 @@ load_palletes:
 	STA PPUADDR
 	LDA #$c8            ;Low byte  (NEXXT atOff(xx))
 	STA PPUADDR
-	LDA #%00000100      ;.2 so it would be in the top right 4x4
+	LDA #%00001000      ;.2 so it would be in the top right 4x4
 	STA PPUDATA         ;Set the data in the ppu
 
-  LDA #%10010000  ; turn on NMIs, sprites use first pattern table
+  LDA #%10010000      ; turn on NMIs, sprites use first pattern table
   STA PPUCTRL
 
-  LDA #%00011110
+  LDA #%00011110      ;Turn on screen?
   STA PPUMASK
 forever:
   JMP forever
 .endproc
 
 .proc nmi_handler
+  LDA #$00
+  STA OAMADDR
+  LDA #$02
+  STA OAMDMA
+	LDA #$00
+	STA $2005
+	STA $2005
   RTI
 .endproc
 
