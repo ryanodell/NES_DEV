@@ -1,13 +1,8 @@
-;Bring in includes
 .include "include/constants.inc"
 .include "include/header.inc"
-;Not needed I think?
-;.segment "STARTUP"
 
-;Import from other objects
 .import reset_handler
 
-;Set the vectors
 .segment "VECTORS"
 .addr nmi_handler, reset_handler, irq_handler
 
@@ -20,11 +15,20 @@
   STX PPUADDR         ;Set the low bit 00
 
 load_palletes:
-  LDA palletes, x     ;x register is 0 and reads from pallete
+  LDA palletes, X     ;x register is 0 and reads from pallete. If something changes before this, do LDX #$00
   STA PPUDATA         ;store the actual value located at index
   INX
   CPX #$10            ;CPX does subtraction to check if x is 10 (16 in decimal)
   BNE load_palletes   ;Zero flag set when x is 4
+
+  ;Time to writes some sprite data :D
+  LDX #$00            ;Start our loop @ 0
+load_sprites:
+  LDA sprites,X       ;Load in this order: Y, TileID, Attrib table, X
+  STA $0200,X
+  INX
+  CPX #$04            ;Only 4 bytes in sprites
+  BNE load_sprites
 
   ;Writing thing (35) to background 
 	LDX #$35            ;The Star
@@ -53,7 +57,7 @@ forever:
   JMP forever
 .endproc
 
-.proc nmi_handler
+.proc nmi_handler     ;Will come back to document this
   LDA #$00
   STA OAMADDR
   LDA #$02
@@ -71,7 +75,6 @@ forever:
 
 .segment "CHR"
 .incbin "assets/space.chr"
-; .res 8192
 
 .segment "RODATA"
 palletes:
@@ -84,4 +87,6 @@ palletes:
 .byte $0f, $19, $09, $29
 .byte $0f, $19, $09, $29
 .byte $0f, $19, $09, $29
-  ; .byte $29, $19, $09, $0f
+
+sprites:
+.byte $70, $05, $00, $80 ; 0 = Y position, 1 = TileID, 2 = Attribute, 3 = X position
