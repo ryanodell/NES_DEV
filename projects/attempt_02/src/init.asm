@@ -1,8 +1,9 @@
 .include "include/constants.inc"
 
+.segment "ZEROPAGE"
+.importzp player_x, player_y
+
 .segment "CODE"
-
-
 .import main, ppu_clear_oam
 .export reset_handler
 .proc reset_handler
@@ -28,6 +29,12 @@ clear_zp:
   STA $00, x        ;Question: address $00 - $0A is read-only, part of the header... why no crash?
   INX               ;Maybe LDX should be set to $0A ? Have to try on real NES to see if this is a non-issue or not
   BNE clear_zp
+
+  ;Initalize player x/y
+  LDA #$80
+  STA player_x
+  LDA #$a0
+  STA player_y
 
   VblankWait        ;After second vblank, PPU is stable, ready to rock and roll
 
