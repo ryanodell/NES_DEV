@@ -75,12 +75,7 @@ forever:
 .endproc
 
 .proc draw_player
-  PHP
-  PHA
-  TXA
-  PHA
-  TYA
-  PHA
+  SaveRegisters
   
   ; write player ship tile numbers
   LDA #$05
@@ -106,13 +101,8 @@ forever:
   LDA player_x
   STA $0203
   
-  PLA
-  TAY
-  PLA
-  TAX
-  PLA
-  PLP
-  RTS
+  RestoreRegisters
+
   RTS
 .endproc
 
