@@ -79,27 +79,27 @@ forever:
   
   ; write player ship tile numbers
   LDA #$05
-  STA $0201
-  LDA #$06
-  STA $0205
-  LDA #$07
-  STA $0209
-  LDA #$08
-  STA $020d
+  STA $0201         ;Setting tile ID of A (05)
+  ; LDA #$06
+  ; STA $0205
+  ; LDA #$07
+  ; STA $0209
+  ; LDA #$08
+  ; STA $020d
 
   ; write player ship tile attributes
   ; use palette 0
   LDA #$00
-  STA $0202
-  STA $0206
-  STA $020a
-  STA $020e
+  STA $0202         ;Setting attribute for pallete (0)
+  ; STA $0206
+  ; STA $020a
+  ; STA $020e
 
   ;positions?
   LDA player_y
-  STA $0200
+  STA $0200         ;Y Position
   LDA player_x
-  STA $0203
+  STA $0203         ;X Position
   
   RestoreRegisters
 
