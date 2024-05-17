@@ -28,5 +28,22 @@ BTN_A       = %10000000
   bpl :-
 .endmacro
 
+.macro SaveRegisters
+  PHP
+  PHA
+  TXA
+  PHA
+  TYA
+  PHA
+.endmacro
+
+.macro RestoreRegisters
+  PLA
+  TAY
+  PLA
+  TAX
+  PLA
+  PLP
+.endmacro
 
 .endif

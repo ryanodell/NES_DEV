@@ -61,8 +61,8 @@ forever:
   LDA #$00
   STA OAMADDR
   LDA #$02
-  STA OAMDMA
-	LDA #$00
+  STA OAMDMA  
+	LDA #$00            ;I don't know what this does but it's needed :(
 	STA $2005
 	STA $2005
   RTI
