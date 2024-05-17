@@ -144,7 +144,7 @@ exit_subroutine:
   CLC
   ADC #$08          ; Add player_y + 8 for tile below top left corner
   STA $020c
-  LDA player_y
+  LDA player_x
   CLC
   ADC #$08          ; Add player_x + 8 for for tile to right of top left corner
   STA $020f
