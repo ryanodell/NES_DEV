@@ -55,7 +55,7 @@ forever:
   STA OAMDMA  
 	LDA #$00            ;I don't know what this does but it's needed :(
 
-  JSR update_player
+  JSR update_player_back_and_forth
   JSR draw_player
 	STA $2005
 	STA $2005
@@ -66,7 +66,7 @@ forever:
   RTI
 .endproc
 
-.proc update_player
+.proc update_player_back_and_forth
   SaveRegisters            ; Save the current state of the CPU registers
 
   LDA player_x             ; Load the value of player_x into the accumulator
