@@ -21,15 +21,6 @@ load_palletes:
   CPX #$10            ;CPX does subtraction to check if x is 10 (16 in decimal)
   BNE load_palletes   ;Zero flag set when x is 4
 
-  ;Time to writes some sprite data :D
-;   LDX #$00            ;Start our loop @ 0
-; load_sprites:
-;   LDA sprites,X       ;Load in this order: Y, TileID, Attrib table, X
-;   STA $0200,X
-;   INX
-;   CPX #$04            ;Only 4 bytes in sprites
-;   BNE load_sprites
-
   ;Writing thing (35) to background 
 	LDX #$35            ;The Star
   LDA PPUSTATUS
@@ -64,6 +55,7 @@ forever:
   STA OAMDMA  
 	LDA #$00            ;I don't know what this does but it's needed :(
 
+  JSR update_player
   JSR draw_player
 	STA $2005
 	STA $2005
@@ -72,6 +64,34 @@ forever:
 
 .proc irq_handler
   RTI
+.endproc
+
+.proc update_player
+  SaveRegisters
+  LDA player_x
+  CMP #$e0                ; Compayer player_x with e0
+  BCC not_at_right_edge   ; Is the register value larger than e0?
+  LDA #$00
+  STA player_dir          ; Set it to 0 so we start moving left
+  JMP direction_set
+not_at_right_edge:        ; We are not, keep moving right
+  LDA player_x
+  CMP #$10
+  BCS direction_set       ;
+  LDA #$01                
+  STA player_dir          ; Set direction to 1 (right)
+direction_set:
+  ; Actually move the player's x in either direction
+  LDA player_dir
+  CMP #$01
+  BEQ move_right ; Direction was set to 1 so move right. If not, we move left (line below this)
+  DEC player_x
+  JMP exit_subroutine
+move_right:
+  INC player_x
+exit_subroutine:
+  RestoreRegisters
+  RTS
 .endproc
 
 .proc draw_player
@@ -139,6 +159,7 @@ forever:
 .segment "ZEROPAGE"
 player_x: .res 1
 player_y: .res 1
+player_dir: .res 1
 .exportzp player_x, player_y
 
 .segment "CHR"
@@ -158,3 +179,27 @@ palletes:
 
 sprites:
 .byte $70, $05, $00, $80 ; 0 = Y position, 1 = TileID, 2 = Attribute, 3 = X position
+
+
+
+; ASM Notes:
+; https://famicom.party/book/11-branchingandloops/
+; BEQ (“Branch if Equals zero”) 
+; BNE (“Branch if Not Equals zero”)
+; BCS (“Branch if Carry Set”)
+; BCC (“Branch if Carry Cleared”) 
+
+; Making Comparisons
+; While the loops we have seen so far are useful, they require some careful setup. 
+; The loops above rely on our loop counter becoming zero in order to end the loop. To make more flexible and 
+; powerful loops, we need the ability to make arbitrary comparisons. In 6502 assembly, the opcodes that let us 
+; do that are CMP, “Compare (with accumulator)“, CPX, “Compare with X register”, and CPY, “Compare with Y register”.
+
+; Each of these opcodes works by performing a subtraction, setting the zero and carry flags as appropriate,
+; and then discarding the result of the subtraction. Remember that when we perform a subtraction, we first set 
+; the carry flag. This means that we have three possible outcomes from a comparison, based on the register value 
+; and the value we are comparing it to:
+
+; Register is larger than comparison value: Carry flag set, zero flag clear
+; Register is equal to comparison value: Carry flag set, zero flag set
+; Register is smaller than comparison value: Carry flag clear, zero flag clear
