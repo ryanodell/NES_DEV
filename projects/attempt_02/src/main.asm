@@ -77,30 +77,60 @@ forever:
 .proc draw_player
   SaveRegisters
   
-  ; write player ship tile numbers
+  ; Write player ship tile numbers
   LDA #$05
-  STA $0201         ;Setting tile ID of A (05)
-  ; LDA #$06
-  ; STA $0205
-  ; LDA #$07
-  ; STA $0209
-  ; LDA #$08
-  ; STA $020d
+  STA $0201         ; Setting tile ID of A (05) sprite 1
+  LDA #$06
+  STA $0205         ; Setting tile ID of A (06) sprite 2
+  LDA #$07
+  STA $0209         ; etc ^ (07) sprite 3
+  LDA #$08
+  STA $020d         ; etc ^ (08) sprite 4
+  ;End writing tile numbers
 
   ; write player ship tile attributes
   ; use palette 0
   LDA #$00
-  STA $0202         ;Setting attribute for pallete (0)
-  ; STA $0206
-  ; STA $020a
-  ; STA $020e
+  STA $0202         ; Setting attribute for pallete (0) for tile 05 - sprite 1
+  STA $0206         ; Setting attribute for pallete (0) for tile 06 - sprite 2
+  STA $020a         ; Setting attribute for pallete (0) for tile 07 - sprite 3
+  STA $020e         ; Setting attribute for pallete (0) for tile 08 - sprite 4
 
-  ;positions?
+  ; Positions
+  ; Sprite 1: Top Left
   LDA player_y
-  STA $0200         ;Y Position
+  STA $0200         ; Y Position
   LDA player_x
-  STA $0203         ;X Position
-  
+  STA $0203         ; X Position
+
+  ; Sprite 2: Top Right
+  LDA player_y
+  STA $0204         ; Y Position
+  LDA player_x
+  CLC               ; Always clear carry flag before additon (unless for 16 bytes)
+  ADC #$08          ; Add player_x + 8 for tile to the right
+  STA $0207         ; X Position
+
+  ; Sprite 3: Bottom Left
+  LDA player_y
+  CLC
+  ADC #$08          ; Add player_y + 8 for tile underneath top left corner
+  STA $0208         ; Y Position
+  LDA player_x
+  STA $020b         ; X Position
+
+  ; Sprite 4: Bottom Right
+  LDA player_y
+  CLC
+  ADC #$08          ; Add player_y + 8 for tile below top left corner
+  STA $020c
+  LDA player_y
+  CLC
+  ADC #$08          ; Add player_x + 8 for for tile to right of top left corner
+  STA $020f
+  ; Combined together, puts this tile to the right and below top left corner
+  ; End positions
+
   RestoreRegisters
 
   RTS
