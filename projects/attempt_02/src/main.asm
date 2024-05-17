@@ -67,32 +67,39 @@ forever:
 .endproc
 
 .proc update_player
-  SaveRegisters
-  LDA player_x
-  CMP #$e0                ; Compayer player_x with e0
-  BCC not_at_right_edge   ; Is the register value larger than e0?
-  LDA #$00
-  STA player_dir          ; Set it to 0 so we start moving left
-  JMP direction_set
-not_at_right_edge:        ; We are not, keep moving right
-  LDA player_x
-  CMP #$10
-  BCS direction_set       ;
-  LDA #$01                
-  STA player_dir          ; Set direction to 1 (right)
-direction_set:
-  ; Actually move the player's x in either direction
-  LDA player_dir
-  CMP #$01
-  BEQ move_right ; Direction was set to 1 so move right. If not, we move left (line below this)
-  DEC player_x
-  JMP exit_subroutine
-move_right:
-  INC player_x
-exit_subroutine:
-  RestoreRegisters
-  RTS
+  SaveRegisters            ; Save the current state of the CPU registers
+
+  LDA player_x             ; Load the value of player_x into the accumulator
+  CMP #$e0                 ; Compare player_x with e0 (224)
+  BCC not_at_right_edge    ; If player_x < e0, branch to not_at_right_edge
+  LDA #$00                 ; Otherwise, load 0 into the accumulator
+  STA player_dir           ; Store 0 in player_dir (indicating move left)
+  JMP direction_set        ; Jump to direction_set to skip the rest of the checks
+
+not_at_right_edge:         ; player_x is less than e0, check the lower boundary
+  LDA player_x             ; Load the value of player_x into the accumulator
+  CMP #$10                 ; Compare player_x with 10 (16)
+  BCS direction_set        ; If player_x >= 10, branch to direction_set
+  LDA #$01                 ; Otherwise, load 1 into the accumulator
+  STA player_dir           ; Store 1 in player_dir (indicating move right)
+
+direction_set:             ; Set the player's movement direction
+  LDA player_dir           ; Load the value of player_dir into the accumulator
+  CMP #$01                 ; Compare player_dir with 1
+  BEQ move_right           ; If player_dir is 1, branch to move_right (move right)
+
+  DEC player_x             ; If player_dir is not 1, decrement player_x (move left)
+  JMP exit_subroutine      ; Jump to exit_subroutine to finish
+
+move_right:                ; Routine to move the player to the right
+  INC player_x             ; Increment player_x (move right)
+
+exit_subroutine:           ; Routine to finish the procedure
+  RestoreRegisters         ; Restore the state of the CPU registers
+  RTS                      ; Return from subroutine
+
 .endproc
+
 
 .proc draw_player
   SaveRegisters
@@ -183,6 +190,9 @@ sprites:
 
 
 ; ASM Notes:
+; CMP is A register MINUS the value after CMP
+; For example: LDA #$05 CMP #$09  is 5 - 9 and carry flag would be set for BCC
+
 ; https://famicom.party/book/11-branchingandloops/
 ; BEQ (“Branch if Equals zero”) 
 ; BNE (“Branch if Not Equals zero”)
