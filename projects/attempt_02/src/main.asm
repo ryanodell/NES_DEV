@@ -22,13 +22,13 @@ load_palletes:
   BNE load_palletes   ;Zero flag set when x is 4
 
   ;Time to writes some sprite data :D
-  LDX #$00            ;Start our loop @ 0
-load_sprites:
-  LDA sprites,X       ;Load in this order: Y, TileID, Attrib table, X
-  STA $0200,X
-  INX
-  CPX #$04            ;Only 4 bytes in sprites
-  BNE load_sprites
+;   LDX #$00            ;Start our loop @ 0
+; load_sprites:
+;   LDA sprites,X       ;Load in this order: Y, TileID, Attrib table, X
+;   STA $0200,X
+;   INX
+;   CPX #$04            ;Only 4 bytes in sprites
+;   BNE load_sprites
 
   ;Writing thing (35) to background 
 	LDX #$35            ;The Star
@@ -63,6 +63,8 @@ forever:
   LDA #$02
   STA OAMDMA  
 	LDA #$00            ;I don't know what this does but it's needed :(
+
+  JSR draw_player
 	STA $2005
 	STA $2005
   RTI
@@ -70,6 +72,48 @@ forever:
 
 .proc irq_handler
   RTI
+.endproc
+
+.proc draw_player
+  PHP
+  PHA
+  TXA
+  PHA
+  TYA
+  PHA
+  
+  ; write player ship tile numbers
+  LDA #$05
+  STA $0201
+  LDA #$06
+  STA $0205
+  LDA #$07
+  STA $0209
+  LDA #$08
+  STA $020d
+
+  ; write player ship tile attributes
+  ; use palette 0
+  LDA #$00
+  STA $0202
+  STA $0206
+  STA $020a
+  STA $020e
+
+  ;positions?
+  LDA player_y
+  STA $0200
+  LDA player_x
+  STA $0203
+  
+  PLA
+  TAY
+  PLA
+  TAX
+  PLA
+  PLP
+  RTS
+  RTS
 .endproc
 
 .segment "ZEROPAGE"
