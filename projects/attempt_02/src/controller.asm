@@ -8,7 +8,7 @@
 
 .proc read_controller1  ; Begin the read_controller1 procedure
   SaveRegisters          ; Save the state of the CPU registers (implementation dependent)
-
+  
   LDA #$01
   STA CONTROLLER1        ; Write 1 to CONTROLLER1 to prepare for latching the button states
 
@@ -27,4 +27,5 @@ get_buttons:
 
   RestoreRegisters       ; Restore the state of the CPU registers (implementation dependent)
 
+  RTS
 .endproc

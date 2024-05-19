@@ -1,7 +1,7 @@
 .include "include/constants.inc"
 .include "include/header.inc"
 
-.import reset_handler, draw_objects, draw_starfield
+.import reset_handler, draw_objects, draw_starfield, read_controller1
 
 .segment "VECTORS"
 .addr nmi_handler, reset_handler, irq_handler
@@ -51,7 +51,9 @@ forever:
   LDA #$00            ; Load the accumulator with 0
                       ; This seems to be an extra NOP-like operation. Sometimes, setting the accumulator to 0 can be part of a timing or sequence requirement.
 
-  JSR update_player_back_and_forth ; Jump to SubRoutine to update player movement
+  JSR read_controller1
+  JSR update_player_input         ;Update based on controller input
+  ;JSR update_player_back_and_forth ; Jump to SubRoutine to update player movement
   JSR draw_player                  ; Jump to SubRoutine to draw player sprite
 
   LDA scroll         ; Load the current scroll value into the accumulator
@@ -112,6 +114,37 @@ exit_subroutine:           ; Routine to finish the procedure
   RTS                      ; Return from subroutine
 
 .endproc
+
+.proc update_player_input  ; Begin the update_player_input procedure
+  SaveRegisters            ; Save the state of the CPU registers (implementation dependent)
+
+  LDA pad1                 ; Load the current button presses from the zero page variable pad1
+  AND #BTN_LEFT            ; Perform a bitwise AND with the BTN_LEFT constant to isolate the Left button press
+  BEQ check_right          ; If the result is zero (Left button not pressed), branch to check_right
+  DEC player_x             ; If the Left button is pressed, decrement player_x to move the player left
+
+check_right:
+  LDA pad1                 ; Load the current button presses again from pad1
+  AND #BTN_RIGHT           ; Perform a bitwise AND with the BTN_RIGHT constant to isolate the Right button press
+  BEQ check_up             ; If the result is zero (Right button not pressed), branch to check_up
+  INC player_x             ; If the Right button is pressed, increment player_x to move the player right
+
+check_up:
+  LDA pad1                 ; Load the current button presses again from pad1
+  AND #BTN_UP              ; Perform a bitwise AND with the BTN_UP constant to isolate the Up button press
+  BEQ check_down           ; If the result is zero (Up button not pressed), branch to check_down
+  DEC player_y             ; If the Up button is pressed, decrement player_y to move the player up
+
+check_down:
+  LDA pad1                 ; Load the current button presses again from pad1
+  AND #BTN_DOWN            ; Perform a bitwise AND with the BTN_DOWN constant to isolate the Down button press
+  BEQ done_checking        ; If the result is zero (Down button not pressed), branch to done_checking
+  INC player_y             ; If the Down button is pressed, increment player_y to move the player down
+
+done_checking:
+  RestoreRegisters         ; Restore the state of the CPU registers (implementation dependent)
+.endproc  ; End of the update_player_input procedure
+
 
 
 .proc draw_player
@@ -199,25 +232,6 @@ palletes:
 .byte $0f,$0c,$21,$32
 .byte $0f,$05,$16,$27
 .byte $0f,$0b,$1a,$29
-; .byte $0f, $12, $23, $27
-; .byte $0f, $2b, $3c, $39
-; .byte $0f, $0c, $07, $13
-; .byte $0f, $19, $09, $29
-
-; .byte $0f, $2d, $10, $15
-; .byte $0f, $19, $09, $29
-; .byte $0f, $19, $09, $29
-; .byte $0f, $19, $09, $29
-
-sprites:
-.byte $70, $05, $00, $80 ; 0 = Y position, 1 = TileID, 2 = Attribute, 3 = X position
-
-; palette_session_a:
-; .byte $0f,$00,$10,$30
-; .byte $0f,$0c,$21,$32
-; .byte $0f,$05,$16,$27
-; .byte $0f,$0b,$1a,$29
-
 
 ; ASM Notes:
 ; CMP is A register MINUS the value after CMP
