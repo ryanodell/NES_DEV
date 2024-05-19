@@ -182,7 +182,8 @@ player_y: .res 1
 player_dir: .res 1
 scroll: .res 1
 ppuctrl_settings: .res 1
-.exportzp player_x, player_y
+pad1: .res 1
+.exportzp player_x, player_y, pad1
 
 .segment "CHR"
 .incbin "assets/space.chr"
