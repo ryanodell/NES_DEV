@@ -216,7 +216,18 @@ player_dir: .res 1
 scroll: .res 1
 ppuctrl_settings: .res 1
 pad1: .res 1
+;Entity pools:
+enemy_x_pos: .res NUM_ENEMIES
+enemy_y_pos: .res NUM_ENEMIES
+enemy_x_vels: .res NUM_ENEMIES
+enemy_y_vels: .res NUM_ENEMIES
+enemy_flags: .res NUM_ENEMIES
+;Bullet pools:
+bullet_xs: .res 3
+bullet_ys: .res 3
+
 .exportzp player_x, player_y, pad1
+.exportzp enemy_x_pos, enemy_y_pos, enemy_x_vels, enemy_y_vels, enemy_flags
 
 .segment "CHR"
 .incbin "assets/space.chr"

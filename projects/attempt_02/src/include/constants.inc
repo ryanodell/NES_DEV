@@ -23,6 +23,8 @@ BTN_SELECT  = %00100000
 BTN_B       = %01000000
 BTN_A       = %10000000
 
+NUM_ENEMIES = 5
+
 .macro VblankWait
 : bit PPUSTATUS
   bpl :-
