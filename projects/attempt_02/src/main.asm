@@ -53,9 +53,11 @@ forever:
 
   LDA scroll
   CMP #$00
+
   BNE set_scroll_positions
   LDA ppuctrl_settings
   EOR #%00000010
+  STA ppuctrl_settings
   STA PPUCTRL
   LDA #240
   STA scroll
