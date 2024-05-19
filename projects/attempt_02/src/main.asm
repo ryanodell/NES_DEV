@@ -9,204 +9,202 @@
 .segment "CODE"
 .export main
 .proc main
-  LDA #239            ;NES can only show at pixel 240, not the full 256
-  STA scroll
-  LDX #$3f            ;Pallete data starts at $3f00
-  STX PPUADDR         ;Set the high bit 3f
-  LDX #$00            
-  STX PPUADDR         ;Set the low bit 00
+  LDA #239            ; NES can only show up to pixel 239 vertically (0 to 239)
+  STA scroll          ; Set the scroll position to 239
+
+  LDX #$3F            ; Pallete data starts at $3F00
+  STX PPUADDR         ; Set the high byte of the PPU address to 3F
+  LDX #$00
+  STX PPUADDR         ; Set the low byte of the PPU address to 00
 
 load_palletes:
-  LDA palletes, X     ;x register is 0 and reads from pallete. If something changes before this, do LDX #$00
-  STA PPUDATA         ;store the actual value located at index
-  INX
-  CPX #$10            ;CPX does subtraction to check if x is 10 (16 in decimal)
-  BNE load_palletes   ;Zero flag set when x is 4
+  LDA palletes, X     ; Load the palette data from the address palletes + X
+  STA PPUDATA         ; Write the palette data to the PPU
+  INX                 ; Increment X to move to the next palette entry
+  CPX #$10            ; Compare X to 16 (decimal)
+  BNE load_palletes   ; If X is not 16, loop to load the next palette entry
 
-  LDX #$20
-  JSR draw_starfield
+  LDX #$20            ; Set X to 32 (hex 20)
+  JSR draw_starfield  ; Draw the starfield at position 32
 
-  LDX #$28
-  JSR draw_starfield
+  LDX #$28            ; Set X to 40 (hex 28)
+  JSR draw_starfield  ; Draw the starfield at position 40
 
-  JSR draw_objects
+  JSR draw_objects    ; Draw other game objects
 
-  LDA #%10010000        ; Turn on NMIs, sprites use first pattern table
-  STA ppuctrl_settings  ; Store the value we send to the ppu controller to modify and re-use later
-  STA PPUCTRL
+  LDA #%10010000      ; Enable NMIs, set sprite pattern table
+  STA ppuctrl_settings; Store the PPU control settings
+  STA PPUCTRL         ; Write the PPU control settings to the PPU
 
-  LDA #%00011110        ; Turn on screen?
-  STA PPUMASK
-forever:
-  JMP forever
+  LDA #%00011110      ; Enable rendering (turn on screen)
+  STA PPUMASK         ; Write the mask settings to the PPU
+
+mainLoop:
+  JSR read_controller1      ; Read controller input
+  JSR update_player_input   ; Update player based on controller input
+  ;JSR update_player_back_and_forth ; Optional routine for player movement
+  JSR draw_player           ; Draw the player sprite
+
+  LDA scroll                ; Load the current scroll value
+  BNE update_scroll         ; If scroll is not zero, update the scroll positions
+
+  LDA ppuctrl_settings      ; Load the PPU control settings
+  EOR #%00000010            ; Toggle the name table select bit
+  STA ppuctrl_settings      ; Store the modified settings
+  ;STA PPUCTRL               ; Uncomment to apply the changes to the PPU
+  LDA #240                  ; Reset the scroll value to 240
+  STA scroll                ; Update the scroll variable
+
+update_scroll:
+  DEC scroll                ; Decrement the scroll value
+  INC sleeping              ; Increment the sleeping variable
+
+sleep:
+  LDA sleeping              ; Load the sleeping variable
+  BNE sleep                 ; Loop until sleeping is zero
+  JMP mainLoop              ; Loop back to the start of the main loop
+
 .endproc
 
-.proc nmi_handler     ; Non-Maskable Interrupt (NMI) handler
-  LDA #$00            ; Load the accumulator with 0
-  STA OAMADDR         ; Set OAMADDR (Object Attribute Memory Address) to 0, effectively resetting the sprite memory address to the start
-  
-  LDA #$02            ; Load the accumulator with 2
-  STA OAMDMA          ; Start a DMA transfer from page $0200 (this is commonly used for copying sprite data to the PPU's OAM)
+.proc nmi_handler           ; Non-Maskable Interrupt (NMI) handler
+  LDA #$00                  ; Reset the sprite memory address to the start
+  STA OAMADDR               ; Set OAMADDR to 0
 
-  LDA #$00            ; Load the accumulator with 0
-                      ; This seems to be an extra NOP-like operation. Sometimes, setting the accumulator to 0 can be part of a timing or sequence requirement.
+  LDA #$02                  ; DMA transfer from page $0200
+  STA OAMDMA                ; Start the DMA transfer
 
-  JSR read_controller1
-  JSR update_player_input         ;Update based on controller input
-  ;JSR update_player_back_and_forth ; Jump to SubRoutine to update player movement
-  JSR draw_player                  ; Jump to SubRoutine to draw player sprite
+  LDA ppuctrl_settings      ; Load the PPU control settings
+  STA PPUCTRL               ; Restore the PPU control settings
 
-  LDA scroll         ; Load the current scroll value into the accumulator
-  CMP #$00           ; Compare the scroll value with 0
+  ; Set scroll values
+  LDA #$00                  ; X scroll
+  STA PPUSCROLL             ; Write X scroll to PPUSCROLL
+  LDA scroll                ; Y scroll
+  STA PPUSCROLL             ; Write Y scroll to PPUSCROLL
 
-  BNE set_scroll_positions ; If scroll is not 0, branch to set_scroll_positions
-  LDA ppuctrl_settings      ; Load current PPU control settings into the accumulator
-  EOR #%00000010            ; Toggle the second bit (name table select bit) using Exclusive OR
-  STA ppuctrl_settings      ; Store the updated settings back to ppuctrl_settings
-  STA PPUCTRL               ; Store the updated settings into PPUCTRL (register $2000) to apply the change
-  LDA #240                  ; Load the accumulator with 240 (decimal)
-  STA scroll                ; Set the scroll variable to 240
-
-set_scroll_positions:
-  LDA #$00                  ; Load the accumulator with 0
-  STA PPUSCROLL             ; Write 0 to PPUSCROLL ($2005) to set the X scroll position
-  DEC scroll                ; Decrement the scroll variable by 1
-  LDA scroll                ; Load the updated scroll value into the accumulator
-  STA PPUSCROLL             ; Write the scroll value to PPUSCROLL ($2005) to set the Y scroll position
-  RTI                       ; Return from Interrupt
+  LDA #$00                  ; Reset sleeping to 0
+  STA sleeping
+  RTI                       ; Return from interrupt
 .endproc
 
-
-.proc irq_handler
+.proc irq_handler           ; IRQ handler (unused)
   RTI
 .endproc
 
 .proc update_player_back_and_forth
-  SaveRegisters            ; Save the current state of the CPU registers
+  SaveRegisters            ; Save CPU registers
 
-  LDA player_x             ; Load the value of player_x into the accumulator
-  CMP #$e0                 ; Compare player_x with e0 (224)
-  BCC not_at_right_edge    ; If player_x < e0, branch to not_at_right_edge
-  LDA #$00                 ; Otherwise, load 0 into the accumulator
-  STA player_dir           ; Store 0 in player_dir (indicating move left)
-  JMP direction_set        ; Jump to direction_set to skip the rest of the checks
+  LDA player_x             ; Load player X position
+  CMP #$E0                 ; Compare with 224
+  BCC not_at_right_edge    ; If player_x < 224, branch
+  LDA #$00                 ; Otherwise, set direction to left
+  STA player_dir           ; Store direction
+  JMP direction_set        ; Jump to direction_set
 
-not_at_right_edge:         ; player_x is less than e0, check the lower boundary
-  LDA player_x             ; Load the value of player_x into the accumulator
-  CMP #$10                 ; Compare player_x with 10 (16)
-  BCS direction_set        ; If player_x >= 10, branch to direction_set
-  LDA #$01                 ; Otherwise, load 1 into the accumulator
-  STA player_dir           ; Store 1 in player_dir (indicating move right)
+not_at_right_edge:
+  LDA player_x             ; Load player X position
+  CMP #$10                 ; Compare with 16
+  BCS direction_set        ; If player_x >= 16, branch
+  LDA #$01                 ; Otherwise, set direction to right
+  STA player_dir           ; Store direction
 
-direction_set:             ; Set the player's movement direction
-  LDA player_dir           ; Load the value of player_dir into the accumulator
-  CMP #$01                 ; Compare player_dir with 1
-  BEQ move_right           ; If player_dir is 1, branch to move_right (move right)
+direction_set:
+  LDA player_dir           ; Load player direction
+  CMP #$01                 ; Compare with 1
+  BEQ move_right           ; If direction is right, branch
 
-  DEC player_x             ; If player_dir is not 1, decrement player_x (move left)
-  JMP exit_subroutine      ; Jump to exit_subroutine to finish
+  DEC player_x             ; Otherwise, move left
+  JMP exit_subroutine      ; Jump to exit_subroutine
 
-move_right:                ; Routine to move the player to the right
-  INC player_x             ; Increment player_x (move right)
+move_right:
+  INC player_x             ; Move right
 
-exit_subroutine:           ; Routine to finish the procedure
-  RestoreRegisters         ; Restore the state of the CPU registers
+exit_subroutine:
+  RestoreRegisters         ; Restore CPU registers
   RTS                      ; Return from subroutine
-
 .endproc
 
-.proc update_player_input  ; Begin the update_player_input procedure
-  SaveRegisters            ; Save the state of the CPU registers (implementation dependent)
+.proc update_player_input  ; Update player input
+  SaveRegisters            ; Save CPU registers
 
-  LDA pad1                 ; Load the current button presses from the zero page variable pad1
-  AND #BTN_LEFT            ; Perform a bitwise AND with the BTN_LEFT constant to isolate the Left button press
-  BEQ check_right          ; If the result is zero (Left button not pressed), branch to check_right
-  DEC player_x             ; If the Left button is pressed, decrement player_x to move the player left
+  LDA pad1                 ; Load controller input
+  AND #BTN_LEFT            ; Check if Left is pressed
+  BEQ check_right          ; If not, branch
+  DEC player_x             ; Move left if pressed
 
 check_right:
-  LDA pad1                 ; Load the current button presses again from pad1
-  AND #BTN_RIGHT           ; Perform a bitwise AND with the BTN_RIGHT constant to isolate the Right button press
-  BEQ check_up             ; If the result is zero (Right button not pressed), branch to check_up
-  INC player_x             ; If the Right button is pressed, increment player_x to move the player right
+  LDA pad1                 ; Load controller input
+  AND #BTN_RIGHT           ; Check if Right is pressed
+  BEQ check_up             ; If not, branch
+  INC player_x             ; Move right if pressed
 
 check_up:
-  LDA pad1                 ; Load the current button presses again from pad1
-  AND #BTN_UP              ; Perform a bitwise AND with the BTN_UP constant to isolate the Up button press
-  BEQ check_down           ; If the result is zero (Up button not pressed), branch to check_down
-  DEC player_y             ; If the Up button is pressed, decrement player_y to move the player up
+  LDA pad1                 ; Load controller input
+  AND #BTN_UP              ; Check if Up is pressed
+  BEQ check_down           ; If not, branch
+  DEC player_y             ; Move up if pressed
 
 check_down:
-  LDA pad1                 ; Load the current button presses again from pad1
-  AND #BTN_DOWN            ; Perform a bitwise AND with the BTN_DOWN constant to isolate the Down button press
-  BEQ done_checking        ; If the result is zero (Down button not pressed), branch to done_checking
-  INC player_y             ; If the Down button is pressed, increment player_y to move the player down
+  LDA pad1                 ; Load controller input
+  AND #BTN_DOWN            ; Check if Down is pressed
+  BEQ done_checking        ; If not, branch
+  INC player_y             ; Move down if pressed
 
 done_checking:
-  RestoreRegisters         ; Restore the state of the CPU registers (implementation dependent)
-.endproc  ; End of the update_player_input procedure
+  RestoreRegisters         ; Restore CPU registers
+.endproc
 
+.proc draw_player          ; Draw player sprite
+  SaveRegisters            ; Save CPU registers
 
-
-.proc draw_player
-  SaveRegisters
-  
   ; Write player ship tile numbers
   LDA #$05
-  STA $0201         ; Setting tile ID of A (05) sprite 1
+  STA $0201                ; Set tile ID for sprite 1
   LDA #$06
-  STA $0205         ; Setting tile ID of A (06) sprite 2
+  STA $0205                ; Set tile ID for sprite 2
   LDA #$07
-  STA $0209         ; etc ^ (07) sprite 3
+  STA $0209                ; Set tile ID for sprite 3
   LDA #$08
-  STA $020d         ; etc ^ (08) sprite 4
-  ;End writing tile numbers
+  STA $020D                ; Set tile ID for sprite 4
 
-  ; write player ship tile attributes
-  ; use palette 0
+  ; Write player ship tile attributes (palette 0)
   LDA #$00
-  STA $0202         ; Setting attribute for pallete (0) for tile 05 - sprite 1
-  STA $0206         ; Setting attribute for pallete (0) for tile 06 - sprite 2
-  STA $020a         ; Setting attribute for pallete (0) for tile 07 - sprite 3
-  STA $020e         ; Setting attribute for pallete (0) for tile 08 - sprite 4
+  STA $0202                ; Set attribute for tile 1
+  STA $0206                ; Set attribute for tile 2
+  STA $020A                ; Set attribute for tile 3
+  STA $020E                ; Set attribute for tile 4
 
-  ; Positions
-  ; Sprite 1: Top Left
+  ; Set sprite positions
   LDA player_y
-  STA $0200         ; Y Position
+  STA $0200                ; Set Y position for sprite 1
   LDA player_x
-  STA $0203         ; X Position
+  STA $0203                ; Set X position for sprite 1
 
-  ; Sprite 2: Top Right
   LDA player_y
-  STA $0204         ; Y Position
+  STA $0204                ; Set Y position for sprite 2
   LDA player_x
-  CLC               ; Always clear carry flag before additon (unless for 16 bytes)
-  ADC #$08          ; Add player_x + 8 for tile to the right
-  STA $0207         ; X Position
+  CLC                      ; Clear carry flag before addition
+  ADC #$08                 ; Add 8 to player_x for sprite 2 X position
+  STA $0207
 
-  ; Sprite 3: Bottom Left
   LDA player_y
   CLC
-  ADC #$08          ; Add player_y + 8 for tile underneath top left corner
-  STA $0208         ; Y Position
+  ADC #$08                 ; Add 8 to player_y for sprite 3 Y position
+  STA $0208
   LDA player_x
-  STA $020b         ; X Position
+  STA $020B                ; Set X position for sprite 3
 
-  ; Sprite 4: Bottom Right
   LDA player_y
   CLC
-  ADC #$08          ; Add player_y + 8 for tile below top left corner
-  STA $020c
+  ADC #$08                 ; Add 8 to player_y for sprite 4 Y position
+  STA $020C
   LDA player_x
   CLC
-  ADC #$08          ; Add player_x + 8 for for tile to right of top left corner
-  STA $020f
-  ; Combined together, puts this tile to the right and below top left corner
-  ; End positions
+  ADC #$08                 ; Add 8 to player_x for sprite 4 X position
+  STA $020F
 
-  RestoreRegisters
-
-  RTS
+  RestoreRegisters         ; Restore CPU registers
+  RTS                      ; Return from subroutine
 .endproc
 
 .segment "ZEROPAGE"
@@ -216,13 +214,16 @@ player_dir: .res 1
 scroll: .res 1
 ppuctrl_settings: .res 1
 pad1: .res 1
-;Entity pools:
+sleeping: .res 1
+
+; Entity pools:
 enemy_x_pos: .res NUM_ENEMIES
 enemy_y_pos: .res NUM_ENEMIES
 enemy_x_vels: .res NUM_ENEMIES
 enemy_y_vels: .res NUM_ENEMIES
 enemy_flags: .res NUM_ENEMIES
-;Bullet pools:
+
+; Bullet pools:
 bullet_xs: .res 3
 bullet_ys: .res 3
 
@@ -234,15 +235,14 @@ bullet_ys: .res 3
 
 .segment "RODATA"
 palletes:
-.byte $0f,$00,$10,$30
-.byte $0f,$0c,$21,$32
-.byte $0f,$05,$16,$27
-.byte $0f,$0b,$1a,$29
-
-.byte $0f,$00,$10,$30
-.byte $0f,$0c,$21,$32
-.byte $0f,$05,$16,$27
-.byte $0f,$0b,$1a,$29
+.byte $0F, $00, $10, $30
+.byte $0F, $0C, $21, $32
+.byte $0F, $05, $16, $27
+.byte $0F, $0B, $1A, $29
+.byte $0F, $00, $10, $30
+.byte $0F, $0C, $21, $32
+.byte $0F, $05, $16, $27
+.byte $0F, $0B, $1A, $29
 
 ; ASM Notes:
 ; CMP is A register MINUS the value after CMP
