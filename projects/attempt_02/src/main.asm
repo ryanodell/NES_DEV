@@ -1,7 +1,7 @@
 .include "include/constants.inc"
 .include "include/header.inc"
 
-.import reset_handler
+.import reset_handler, draw_objects, draw_starfield
 
 .segment "VECTORS"
 .addr nmi_handler, reset_handler, irq_handler
@@ -9,6 +9,8 @@
 .segment "CODE"
 .export main
 .proc main
+  LDA #239            ;NES can only show at pixel 240, not the full 256
+  STA scroll
   LDX #$3f            ;Pallete data starts at $3f00
   STX PPUADDR         ;Set the high bit 3f
   LDX #$00            
@@ -21,28 +23,19 @@ load_palletes:
   CPX #$10            ;CPX does subtraction to check if x is 10 (16 in decimal)
   BNE load_palletes   ;Zero flag set when x is 4
 
-  ;Writing thing (35) to background 
-	LDX #$35            ;The Star
-  LDA PPUSTATUS
-	LDA #$20            ;Low byte
-	STA PPUADDR
-	LDA #$83            ;High byte
-	STA PPUADDR
-	STX PPUDATA
+  LDX #$20
+  JSR draw_starfield
 
-  ;Attribute table
-  LDA PPUSTATUS
-	LDA #$23            ;High byte NEXXT atOff(xx)
-	STA PPUADDR
-	LDA #$c8            ;Low byte  (NEXXT atOff(xx))
-	STA PPUADDR
-	LDA #%00001000      ;.2 so it would be in the top right 4x4
-	STA PPUDATA         ;Set the data in the ppu
+  LDX #$28
+  JSR draw_starfield
 
-  LDA #%10010000      ; turn on NMIs, sprites use first pattern table
+  JSR draw_objects
+
+  LDA #%10010000        ; Turn on NMIs, sprites use first pattern table
+  STA ppuctrl_settings  ; Store the value we send to the ppu controller to modify and re-use later
   STA PPUCTRL
 
-  LDA #%00011110      ;Turn on screen?
+  LDA #%00011110        ; Turn on screen?
   STA PPUMASK
 forever:
   JMP forever
@@ -57,8 +50,25 @@ forever:
 
   JSR update_player_back_and_forth
   JSR draw_player
-	STA $2005
-	STA $2005
+
+  LDA scroll
+  CMP #$00
+  BNE set_scroll_positions
+  LDA ppuctrl_settings
+  EOR #%00000010
+  STA PPUCTRL
+  LDA #240
+  STA scroll
+
+set_scroll_positions:
+  LDA #$00
+  STA PPUSCROLL       ;$2005 - X SCROLL
+  DEC scroll
+  LDA scroll
+  STA PPUSCROLL       ;$2005 - Y SCROLL
+  ;A register should be 0 so each write sets the X & Y of the scroll:
+	; STA PPUSCROLL       ;$2005 - X SCROLL
+	; STA PPUSCROLL       ;$2005 - Y SCROLL
   RTI
 .endproc
 
@@ -167,6 +177,8 @@ exit_subroutine:           ; Routine to finish the procedure
 player_x: .res 1
 player_y: .res 1
 player_dir: .res 1
+scroll: .res 1
+ppuctrl_settings: .res 1
 .exportzp player_x, player_y
 
 .segment "CHR"
@@ -174,19 +186,33 @@ player_dir: .res 1
 
 .segment "RODATA"
 palletes:
-.byte $0f, $12, $23, $27
-.byte $0f, $2b, $3c, $39
-.byte $0f, $0c, $07, $13
-.byte $0f, $19, $09, $29
+.byte $0f,$00,$10,$30
+.byte $0f,$0c,$21,$32
+.byte $0f,$05,$16,$27
+.byte $0f,$0b,$1a,$29
 
-.byte $0f, $2d, $10, $15
-.byte $0f, $19, $09, $29
-.byte $0f, $19, $09, $29
-.byte $0f, $19, $09, $29
+.byte $0f,$00,$10,$30
+.byte $0f,$0c,$21,$32
+.byte $0f,$05,$16,$27
+.byte $0f,$0b,$1a,$29
+; .byte $0f, $12, $23, $27
+; .byte $0f, $2b, $3c, $39
+; .byte $0f, $0c, $07, $13
+; .byte $0f, $19, $09, $29
+
+; .byte $0f, $2d, $10, $15
+; .byte $0f, $19, $09, $29
+; .byte $0f, $19, $09, $29
+; .byte $0f, $19, $09, $29
 
 sprites:
 .byte $70, $05, $00, $80 ; 0 = Y position, 1 = TileID, 2 = Attribute, 3 = X position
 
+; palette_session_a:
+; .byte $0f,$00,$10,$30
+; .byte $0f,$0c,$21,$32
+; .byte $0f,$05,$16,$27
+; .byte $0f,$0b,$1a,$29
 
 
 ; ASM Notes:

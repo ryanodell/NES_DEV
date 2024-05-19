@@ -3,8 +3,8 @@ NSTssTXT
 BtnTiles=1
 BtnChecker=0
 BtnSelTiles=0
-BtnChrBank1=1
-BtnChrBank2=0
+BtnChrBank1=0
+BtnChrBank2=1
 BtnGridAll=1
 BtnGridTile=1
 BtnGridAtr=1
@@ -44,9 +44,9 @@ ChkSwapBanks_Properties=1
 ChkSwapBanks_Labels=1
 VarTileViewTagBuf=0
 VarBgPalCur=0
-VarPalActive=0
-VarTileActive=8
-VarBankActive=0
+VarPalActive=3
+VarTileActive=0
+VarBankActive=4096
 VarPPUMask=0
 VarPPUMaskSet0=0
 VarPPUMaskSet1=0
@@ -67,8 +67,8 @@ VarNameSelectionT=-1
 VarNameSelectionB=5
 VarNameCopyW=-1
 VarNameCopyH=-1
-VarCHRSelectionL=8
-VarCHRSelectionR=9
+VarCHRSelectionL=0
+VarCHRSelectionR=1
 VarCHRSelectionT=0
 VarCHRSelectionB=1
 VarCHRCopyW=-1
@@ -129,7 +129,7 @@ MetaSpriteBankName=session
 FilterCHR=0
 FilterName=1
 FileNameCHR=C:\Users\User\Documents\repo\6502\NES_DEV\NES_DEV\projects\attempt_02\assets\space
-FileNameName=
+FileNameName=C:\Users\User\Documents\repo\6502\NES_DEV\NES_DEV\projects\attempt_02\assets\starfield_01
 FileNamePal=
 FileNameMetaSpriteBank=
 FileNameTileProps=
@@ -144,7 +144,7 @@ RadioAutoexport_UseSubDir_NEXXT=0
 CheckAutoexport_MetatileAsBMP=0
 
 
-VarCHRSelected=00[8]0100[f7]
+VarCHRSelected=0100[ff]
 
 
 Palette=0f0010300f0c21320f0516270f0b1a290f1c21320f1122330f1223340f1324350f1324360f1526370f1627370f1928380f1829380f1b2a390f1b2b3c0f1c2c3b
@@ -162,22 +162,22 @@ CHRUndo=00[10]ff[8]00[10]ff[18]00[9]030f1f3f[2]7f[2]00[6]0901[4]03[3]0b[2]00[6]9
 CHRCopy=00[1000]
 
 
-NameTable=00[83]3500[10a]050600[7]2f00[16]070800[138]2f00[d7]
+NameTable=00[5b]2d00[27]2f00[60]4000[1f]4000[9]2d00[88]2f00[b]2d00[45]7300[47]2e00[b6]2f00[4f]2d00[29]2d00[5d]
 
 
 NameCopy=00[63]2f00[1f]2f00[20]2f00[31b]
 
 
-NameUndo=00[83]3500[10a]050600[7]2f00[16]0700[139]2f00[d7]
+NameUndo=00[5b]2d00[27]2f00[60]4000[1f]4000[9]2d00[88]2f00[b]2d00[22]61[4]00[1c]7071727300[47]2e00[b6]2f00[4f]2d00[29]2d00[5d]
 
 
-AttrTable=00[40]
+AttrTable=00[9]3000[7]0300[6]08c0f000[2]0400[6]0100[5]2000[15]
 
 
 AttrCopy=00[40]
 
 
-AttrUndo=00[40]
+AttrUndo=00[9]3000[7]0300[6]08c03000[2]0400[6]0100[5]2000[15]
 
 
 MetaSprites=ff[10000]
