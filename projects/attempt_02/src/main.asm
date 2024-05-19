@@ -41,38 +41,39 @@ forever:
   JMP forever
 .endproc
 
-.proc nmi_handler     ;Will come back to document this
-  LDA #$00
-  STA OAMADDR
-  LDA #$02
-  STA OAMDMA  
-	LDA #$00            ;I don't know what this does but it's needed :(
+.proc nmi_handler     ; Non-Maskable Interrupt (NMI) handler
+  LDA #$00            ; Load the accumulator with 0
+  STA OAMADDR         ; Set OAMADDR (Object Attribute Memory Address) to 0, effectively resetting the sprite memory address to the start
+  
+  LDA #$02            ; Load the accumulator with 2
+  STA OAMDMA          ; Start a DMA transfer from page $0200 (this is commonly used for copying sprite data to the PPU's OAM)
 
-  JSR update_player_back_and_forth
-  JSR draw_player
+  LDA #$00            ; Load the accumulator with 0
+                      ; This seems to be an extra NOP-like operation. Sometimes, setting the accumulator to 0 can be part of a timing or sequence requirement.
 
-  LDA scroll
-  CMP #$00
+  JSR update_player_back_and_forth ; Jump to SubRoutine to update player movement
+  JSR draw_player                  ; Jump to SubRoutine to draw player sprite
 
-  BNE set_scroll_positions
-  LDA ppuctrl_settings
-  EOR #%00000010
-  STA ppuctrl_settings
-  STA PPUCTRL
-  LDA #240
-  STA scroll
+  LDA scroll         ; Load the current scroll value into the accumulator
+  CMP #$00           ; Compare the scroll value with 0
+
+  BNE set_scroll_positions ; If scroll is not 0, branch to set_scroll_positions
+  LDA ppuctrl_settings      ; Load current PPU control settings into the accumulator
+  EOR #%00000010            ; Toggle the second bit (name table select bit) using Exclusive OR
+  STA ppuctrl_settings      ; Store the updated settings back to ppuctrl_settings
+  STA PPUCTRL               ; Store the updated settings into PPUCTRL (register $2000) to apply the change
+  LDA #240                  ; Load the accumulator with 240 (decimal)
+  STA scroll                ; Set the scroll variable to 240
 
 set_scroll_positions:
-  LDA #$00
-  STA PPUSCROLL       ;$2005 - X SCROLL
-  DEC scroll
-  LDA scroll
-  STA PPUSCROLL       ;$2005 - Y SCROLL
-  ;A register should be 0 so each write sets the X & Y of the scroll:
-	; STA PPUSCROLL       ;$2005 - X SCROLL
-	; STA PPUSCROLL       ;$2005 - Y SCROLL
-  RTI
+  LDA #$00                  ; Load the accumulator with 0
+  STA PPUSCROLL             ; Write 0 to PPUSCROLL ($2005) to set the X scroll position
+  DEC scroll                ; Decrement the scroll variable by 1
+  LDA scroll                ; Load the updated scroll value into the accumulator
+  STA PPUSCROLL             ; Write the scroll value to PPUSCROLL ($2005) to set the Y scroll position
+  RTI                       ; Return from Interrupt
 .endproc
+
 
 .proc irq_handler
   RTI
