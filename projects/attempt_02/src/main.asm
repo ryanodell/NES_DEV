@@ -32,6 +32,19 @@ load_palletes:
 
   JSR draw_objects    ; Draw other game objects
 
+  LDA #$00
+  STA current_enemy
+  STA current_enemy_type
+
+turtle_data:
+  LDA #$00            ; Turtle is type 0
+  STA enemy_flags, X  ; Store type 0
+  LDA #$01
+  STA enemy_y_vels,X
+  INX
+  CPX #$03
+  BNE turtle_data
+
   LDA #%10010000      ; Enable NMIs, set sprite pattern table
   STA ppuctrl_settings; Store the PPU control settings
   STA PPUCTRL         ; Write the PPU control settings to the PPU
@@ -223,9 +236,15 @@ enemy_x_vels: .res NUM_ENEMIES
 enemy_y_vels: .res NUM_ENEMIES
 enemy_flags: .res NUM_ENEMIES
 
+;
+current_enemy: .res 1
+current_enemy_type .res 1
+enemy_timer .res 1
+
 ; Bullet pools:
 bullet_xs: .res 3
 bullet_ys: .res 3
+
 
 .exportzp player_x, player_y, pad1
 .exportzp enemy_x_pos, enemy_y_pos, enemy_x_vels, enemy_y_vels, enemy_flags
