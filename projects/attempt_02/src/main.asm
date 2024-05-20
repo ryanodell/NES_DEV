@@ -32,18 +32,39 @@ load_palletes:
 
   JSR draw_objects    ; Draw other game objects
 
-  LDA #$00
-  STA current_enemy
-  STA current_enemy_type
+  LDA #$00               ; Load 0 into the accumulator
+  STA current_enemy      ; Initialize current_enemy to 0
+  STA current_enemy_type ; Initialize current_enemy_type to 0
 
 turtle_data:
-  LDA #$00            ; Turtle is type 0
-  STA enemy_flags, X  ; Store type 0
-  LDA #$01
-  STA enemy_y_vels,X
-  INX
-  CPX #$03
-  BNE turtle_data
+  LDA #$00               ; Load 0 into the accumulator (Turtle type is 0)
+  STA enemy_flags, X     ; Store 0 in enemy_flags at the position indicated by X
+  LDA #$01               ; Load 1 into the accumulator (Turtle's Y velocity)
+  STA enemy_y_vels, X    ; Store 1 in enemy_y_vels at the position indicated by X
+  INX                    ; Increment X register
+  CPX #$03               ; Compare X with 3
+  BNE turtle_data        ; If X is not 3, repeat the loop (setup for 3 turtles)
+  ; At this point, X is now 3
+
+snake_data:
+  LDA #$01               ; Load 1 into the accumulator (Snake type is 1)
+  STA enemy_flags, X     ; Store 1 in enemy_flags at the position indicated by X
+  LDA #$02               ; Load 2 into the accumulator (Snake's Y velocity)
+  STA enemy_y_vels, X    ; Store 2 in enemy_y_vels at the position indicated by X
+  INX                    ; Increment X register
+  CPX #$05               ; Compare X with 5
+  BNE snake_data         ; If X is not 5, repeat the loop (setup for 2 snakes)
+  ; At this point, X is now 5
+
+  LDX #$00               ; Initialize X register to 0
+  LDA #$10               ; Load 16 into the accumulator (initial X position for enemies)
+setup_enemy_x:
+  STA enemy_x_pos, X     ; Store 16 in enemy_x_pos at the position indicated by X
+  CLC                    ; Clear the carry flag before addition
+  ADC #$20               ; Add 32 to the accumulator (next enemy's X position)
+  INX                    ; Increment X register
+  CPX #NUM_ENEMIES       ; Compare X with NUM_ENEMIES (total number of enemies)
+  BNE setup_enemy_x      ; If X is not equal to NUM_ENEMIES, repeat the loop
 
   LDA #%10010000      ; Enable NMIs, set sprite pattern table
   STA ppuctrl_settings; Store the PPU control settings
@@ -238,8 +259,8 @@ enemy_flags: .res NUM_ENEMIES
 
 ;
 current_enemy: .res 1
-current_enemy_type .res 1
-enemy_timer .res 1
+current_enemy_type: .res 1
+enemy_timer: .res 1
 
 ; Bullet pools:
 bullet_xs: .res 3
