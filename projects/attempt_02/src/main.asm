@@ -82,14 +82,18 @@ mainLoop:
   JSR process_enemies       ; Self explanitory
 	
   ; Draw all enemies
-	LDA #$00
-	STA current_enemy
+  LDA #$00            ; Load 0 into the accumulator to initialize the enemy index
+  STA current_enemy   ; Store 0 in current_enemy, setting it to point to the first enemy
+
 enemy_drawing:
-	JSR draw_enemy
-	INC current_enemy
-	LDA current_enemy
-	CMP #NUM_ENEMIES
-	BNE enemy_drawing
+  JSR draw_enemy    ; Jump to SubRoutine draw_enemy to draw the current enemy
+  INC current_enemy ; Increment the current_enemy index to point to the next enemy
+  LDA current_enemy ; Load the value of current_enemy into the accumulator
+  CMP #NUM_ENEMIES  ; Compare the current_enemy value with NUM_ENEMIES (total number of enemies)
+  BNE enemy_drawing ; If current_enemy is not equal to NUM_ENEMIES, branch to enemy_drawing to continue drawing
+
+  ; When all enemies have been drawn, execution continues here
+
 
   LDA scroll                ; Load the current scroll value
   BNE update_scroll         ; If scroll is not zero, update the scroll positions
