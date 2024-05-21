@@ -1,7 +1,7 @@
 .include "include/constants.inc"
 .include "include/header.inc"
 
-.import reset_handler, draw_objects, draw_starfield, read_controller1, process_enemies
+.import reset_handler, draw_objects, draw_starfield, read_controller1, process_enemies, draw_enemy
 
 .segment "VECTORS"
 .addr nmi_handler, reset_handler, irq_handler
@@ -80,6 +80,16 @@ mainLoop:
   JSR draw_player           ; Draw the player sprite
 
   JSR process_enemies       ; Self explanitory
+	
+  ; Draw all enemies
+	LDA #$00
+	STA current_enemy
+enemy_drawing:
+	JSR draw_enemy
+	INC current_enemy
+	LDA current_enemy
+	CMP #NUM_ENEMIES
+	BNE enemy_drawing
 
   LDA scroll                ; Load the current scroll value
   BNE update_scroll         ; If scroll is not zero, update the scroll positions
