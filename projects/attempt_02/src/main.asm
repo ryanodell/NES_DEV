@@ -1,7 +1,7 @@
 .include "include/constants.inc"
 .include "include/header.inc"
 
-.import reset_handler, draw_objects, draw_starfield, read_controller1
+.import reset_handler, draw_objects, draw_starfield, read_controller1, process_enemies
 
 .segment "VECTORS"
 .addr nmi_handler, reset_handler, irq_handler
@@ -78,6 +78,8 @@ mainLoop:
   JSR update_player_input   ; Update player based on controller input
   ;JSR update_player_back_and_forth ; Optional routine for player movement
   JSR draw_player           ; Draw the player sprite
+
+  JSR process_enemies       ; Self explanitory
 
   LDA scroll                ; Load the current scroll value
   BNE update_scroll         ; If scroll is not zero, update the scroll positions
@@ -268,7 +270,7 @@ bullet_ys: .res 3
 
 
 .exportzp player_x, player_y, pad1
-.exportzp enemy_x_pos, enemy_y_pos, enemy_x_vels, enemy_y_vels, enemy_flags
+.exportzp enemy_x_pos, enemy_y_pos, enemy_x_vels, enemy_y_vels, enemy_flags, current_enemy, current_enemy_type, enemy_timer
 
 .segment "CHR"
 .incbin "assets/space.chr"

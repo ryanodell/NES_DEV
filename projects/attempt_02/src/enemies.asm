@@ -1,7 +1,7 @@
-.include "include/constants.asm"
+.include "include/constants.inc"
 
 .segment "ZEROPAGE"
-.importzp enemy_x_pos, enemy_y_pos, enemy_x_vels, enemy_y_vels, enemy_flags, enemy_timer, current_enemy
+.importzp enemy_x_pos, enemy_y_pos, enemy_x_vels, enemy_y_vels, enemy_flags, enemy_timer, current_enemy, current_enemy_type
 
 .segment "CODE"
 .export update_enemy
